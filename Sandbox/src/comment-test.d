@@ -28,6 +28,8 @@ int main( )
     //*/x=///*
     i+j;
 
+/+ This is a comment.. Still a comment... +/ x = j+i;
+
   return 0;
 }
 

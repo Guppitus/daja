@@ -50,6 +50,7 @@ object CommentStrip {
     val MAYBE_UNCOMMENT = Value
     val SLASH_SLASH_COMMENT = Value
     val BLOCK_COMMENT = Value
+    val NESTING_BLOCK_COMMENT = Value
     val DOUBLE_QUOTE = Value
     val SINGLE_QUOTE = Value
     val ESCAPE_ONE_DOUBLE = Value
@@ -66,6 +67,7 @@ object CommentStrip {
     var state = StateType.NORMAL
     val input = new FileReader(args(0))
     var ch: Int = 0
+    var depth: Int = 0
 
     while ({ ch = input.read(); ch != -1 }) {
       state match {
@@ -81,6 +83,7 @@ object CommentStrip {
           ch match {
             case '/' =>                        state = StateType.SLASH_SLASH_COMMENT
             case '*' => print(' ');            state = StateType.BLOCK_COMMENT
+            case '+' => print(' '); depth+=1;  state = StateType.NESTING_BLOCK_COMMENT
             case '"' => print('/'); print(ch); state = StateType.DOUBLE_QUOTE
             case '\''=> print('/'); print(ch); state = StateType.SINGLE_QUOTE
             case _   => print('/'); print(ch); state = StateType.NORMAL
@@ -90,6 +93,7 @@ object CommentStrip {
           ch match {
             case '/' => state = StateType.NORMAL
             case '*' =>
+            case '+' => depth-=1
             case _   => state = StateType.BLOCK_COMMENT
           }
 
@@ -102,6 +106,13 @@ object CommentStrip {
         case StateType.BLOCK_COMMENT =>
           ch match {
             case '*'  =>            state = StateType.MAYBE_UNCOMMENT
+            case '\n' => print(ch)
+            case _    =>
+          }
+
+        case StateType.NESTING_BLOCK_COMMENT =>
+          ch match {
+            case '+'  =>            state = StateType.MAYBE_UNCOMMENT
             case '\n' => print(ch)
             case _    =>
           }
