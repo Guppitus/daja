@@ -3,6 +3,11 @@ package org.pchapin.daja
 import java.io.FileReader
 
 /**
+  * Seth Lunn
+  * Homework 1 CIS 4050
+*/
+
+/**
  * The main class of the CommentStrip utility.
  *
  * This program implements the following finite state machine:
@@ -48,6 +53,7 @@ object CommentStrip {
     val NORMAL = Value
     val MAYBE_COMMENT = Value
     val MAYBE_UNCOMMENT = Value
+    val MAYBE_UNCOMMENT_NESTED = Value
     val SLASH_SLASH_COMMENT = Value
     val BLOCK_COMMENT = Value
     val NESTING_BLOCK_COMMENT = Value
@@ -90,12 +96,21 @@ object CommentStrip {
           }
 
         case StateType.MAYBE_UNCOMMENT =>
-          ch match {
-            case '/' => state = StateType.NORMAL
-            case '*' =>
-            case '+' => depth-=1
-            case _   => state = StateType.BLOCK_COMMENT
-          }
+            ch match {
+              case '/' => state = StateType.NORMAL
+              case '*' =>
+              case _   => state = StateType.BLOCK_COMMENT
+            }
+
+        //if + followed by / and depth is 0 (aka not internal nested comment)
+        //switch to normal state, else remain in Nested Comment State.
+        case StateType.MAYBE_UNCOMMENT_NESTED =>
+            ch match {
+              case '/' => depth -= 1; if (depth == 0) {state = StateType.NORMAL}
+              case '+' =>
+              case _ => state = StateType.NESTING_BLOCK_COMMENT
+            }
+
 
         case StateType.SLASH_SLASH_COMMENT =>
           if (ch == '\n') {
@@ -109,10 +124,12 @@ object CommentStrip {
             case '\n' => print(ch)
             case _    =>
           }
-
+        //
         case StateType.NESTING_BLOCK_COMMENT =>
+
           ch match {
-            case '+'  =>            state = StateType.MAYBE_UNCOMMENT
+            case '+'  =>            state = StateType.MAYBE_UNCOMMENT_NESTED
+            case '/'  =>            state = StateType.MAYBE_COMMENT
             case '\n' => print(ch)
             case _    =>
           }
